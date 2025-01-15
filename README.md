@@ -1,14 +1,16 @@
-# prompt-template
+# Prompt Template
 
-This is a lightweight zero-dependency Python library for managing LLM prompt template.
+This is a lightweight zero-dependency Python library for managing LLM prompt template. Its modelled on the stdlib `string.Template` but with more robust features.
 
-It exports a class called `PromptTemplate`, which similarly to the stdlib `string.Template`, allows users to use `${variable}` type format strings.
+## Features
 
-It additionally includes the following features:
-
-    - template validation
-    - incremental population of template values
-    - serialization
+    - Template validation
+    - Support for nested braces and JSON structures
+    - Automatic value serialization
+    - Incremental template population
+    - Clear error messages with detailed context
+    - Type hints for better IDE support
+    - Extensible design
 
 ## Installation
 
@@ -127,17 +129,6 @@ You can customize how values are serialized by subclassing `PromptTemplate`:
         data={"complex": "object"}
     )
     ```
-
-## Features
-
-- Zero dependencies
-- Robust template validation
-- Support for nested braces and JSON structures
-- Automatic value serialization
-- Incremental template population
-- Clear error messages with detailed context
-- Type hints for better IDE support
-- Extensible design
 
 ## Error Handling
 
