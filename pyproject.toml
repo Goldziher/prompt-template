@@ -5,19 +5,10 @@ requires = [ "setuptools", "setuptools-scm" ]
 
 [project]
 name = "prompt-template"
-version = "1.0.0"
+version = "1.0.1"
 description = "A simple but robust zero-dependency library for creating prompt templates"
 readme = "README.md"
-keywords = [
-  "ai",
-  "llm",
-  "prompt-engineering",
-  "string-formatting",
-  "string-template",
-  "template",
-  "text-processing",
-  "zero-dependency",
-]
+keywords = [ "ai", "llm", "prompt-engineering", "prompt-template", "templating" ]
 license = { text = "MIT" }
 authors = [ { name = "Na'aman Hirschfeld", email = "nhirschfed@gmail.com" } ]
 requires-python = ">=3.9"
