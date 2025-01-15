@@ -8,6 +8,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     environment: pypi
+    permissions:
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
