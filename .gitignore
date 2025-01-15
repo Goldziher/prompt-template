@@ -16,4 +16,4 @@
 __pycache__/
 coverage.xml
 requirements.txt
-**/http-client.private.env.json
+prompt_template.egg-info/

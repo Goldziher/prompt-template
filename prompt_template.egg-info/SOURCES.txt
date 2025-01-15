@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-prompt_template/__init__.py
-prompt_template/prompt_template.py
-prompt_template/py.typed
-prompt_template.egg-info/PKG-INFO
-prompt_template.egg-info/SOURCES.txt
-prompt_template.egg-info/dependency_links.txt
-prompt_template.egg-info/top_level.txt

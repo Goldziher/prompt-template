@@ -1,46 +1,46 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
+
+requires = [ "setuptools", "setuptools-scm" ]
 
 [project]
 name = "prompt-template"
 version = "1.0.0"
 description = "A simple but robust zero-dependency library for creating prompt templates"
 readme = "README.md"
+keywords = [
+  "ai",
+  "llm",
+  "prompt-engineering",
+  "string-formatting",
+  "string-template",
+  "template",
+  "text-processing",
+  "zero-dependency",
+]
 license = { text = "MIT" }
-authors = [{ name = "Na'aman Hirschfeld", email = "nhirschfed@gmail.com" }]
+authors = [ { name = "Na'aman Hirschfeld", email = "nhirschfed@gmail.com" } ]
 requires-python = ">=3.9"
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "Development Status :: 4 - Beta",
-  "Topic :: Utilities",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Text Processing :: General",
-  "Topic :: Scientific/Engineering :: Artificial Intelligence",
-  "License :: OSI Approved :: MIT License",
-  "Intended Audience :: Developers",
+  "Topic :: Utilities",
   "Typing :: Typed",
-  "Operating System :: OS Independent",
 ]
-keywords = [
-  "template",
-  "string-template",
-  "prompt-engineering",
-  "llm",
-  "ai",
-  "string-formatting",
-  "text-processing",
-  "zero-dependency",
-]
-dependencies = []
+dependencies = [  ]
 
-[project.urls]
-homepage = "https://github.com/Goldziher/prompt-template"
+urls.homepage = "https://github.com/Goldziher/prompt-template"
 
 [dependency-groups]
 dev = [
@@ -53,14 +53,20 @@ dev = [
   "ruff>=0.9.1",
 ]
 
+[tool.setuptools.packages.find]
+include = [ "prompt_template" ]
+
+[tool.setuptools.package-data]
+prompt_template = [ "py.typed" ]
+
 [tool.ruff]
 target-version = "py39"
 line-length = 120
-src = ["src", "tests"]
+src = [ "src", "tests" ]
 
 format.docstring-code-line-length = 120
 format.docstring-code-format = true
-lint.select = ["ALL"]
+lint.select = [ "ALL" ]
 lint.ignore = [
   "ANN401", # Dynamically typed ANY
   "COM812", # Conflicts with formatter
@@ -85,7 +91,7 @@ lint.per-file-ignores."tests/**/*.*" = [
   "S",
 ]
 
-lint.isort.known-first-party = ["src", "tests"]
+lint.isort.known-first-party = [ "src", "tests" ]
 lint.pydocstyle.convention = "google"
 
 [tool.pyproject-fmt]
@@ -93,23 +99,17 @@ keep_full_version = true
 max_supported_python = "3.13"
 
 [tool.coverage.run]
-omit = ["tests/*"]
-plugins = ["covdefaults"]
-source = ["src"]
+omit = [ "tests/*" ]
+plugins = [ "covdefaults" ]
+source = [ "src" ]
 
 [tool.coverage.report]
-exclude_lines = ['if TYPE_CHECKING:']
+exclude_lines = [ 'if TYPE_CHECKING:' ]
 fail_under = 100
 
 [tool.mypy]
-packages = ["src", "tests"]
+packages = [ "src", "tests" ]
 python_version = "3.13"
 implicit_reexport = false
 show_error_codes = true
 strict = true
-
-[tool.setuptools.packages.find]
-include = ["prompt_template"]
-
-[tool.setuptools.package-data]
-prompt_template = ["py.typed"]
