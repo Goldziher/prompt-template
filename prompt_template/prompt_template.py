@@ -6,7 +6,7 @@ from json import dumps
 from re import Pattern
 from re import compile as compile_re
 from textwrap import dedent
-from typing import Any, Callable, ClassVar
+from typing import Any, Callable, ClassVar, Self, cast
 from uuid import UUID
 
 
@@ -167,7 +167,7 @@ class PromptTemplate:
 
         return mapping
 
-    def substitute(self, **kwargs: Any) -> PromptTemplate:
+    def substitute(self, **kwargs: Any) -> Self:
         """Substitute the template."""
         mapping = self.prepare(True, **kwargs)
 
@@ -176,7 +176,7 @@ class PromptTemplate:
             template = template.replace(f"${{{k}}}", v)
 
         new_name = f"{self.name}_substitution" if self.name else None
-        return PromptTemplate(template=template, name=new_name)
+        return cast(Self, PromptTemplate(template=template, name=new_name))
 
     def to_string(self, **kwargs: Any) -> str:
         """Convert the template to a string with substituted values."""

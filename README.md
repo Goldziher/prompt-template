@@ -35,6 +35,14 @@ result = template.to_string(name="Alice", location="Wonderland")
 print(result)  # Hello Alice! Welcome to Wonderland.
 ```
 
+### Named Templates
+
+```python
+# you can also set a name value on a template, which adds this data to any exception raised
+
+template = PromptTemplate(name="my_template", template="Hello ${name}! Welcome to ${location}.")
+```
+
 ### Working with JSON Templates
 
 ```python
