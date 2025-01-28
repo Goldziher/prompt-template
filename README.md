@@ -1,20 +1,20 @@
 # Prompt Template
 
-This is a lightweight zero-dependency Python library for managing LLM prompt template. Its modelled on the stdlib `string.Template` but with more robust features.
+A lightweight, zero-dependency Python library for managing LLM prompt templates. Built on the design principles of
+`string.Template` but with enhanced features specifically designed for LLM prompt engineering.
 
 ## Features
 
-- Template validation
-- Support for nested braces and JSON structures
-- Automatic value serialization
-- Incremental template population
-- Clear error messages with detailed context
-- Type hints for better IDE support
-- Extensible design
+- Strong template validation with detailed error messages
+- Support for nested braces and complex JSON structures
+- Automatic value serialization for common Python types
+- Default value support with deep copying for mutable types
+- Incremental template population with value inheritance
+- Type hints for enhanced IDE support
+- Zero dependencies - just pure Python
+- 100% test coverage
 
 ## Installation
-
-Install using pip:
 
 ```bash
 pip install prompt-template
@@ -22,7 +22,10 @@ pip install prompt-template
 
 ## Usage
 
-### Basic Usage
+The library is intentionally very simple to use.
+The idea is to keep it simple, have validation and serialization builtin, and make debugging simple.
+
+### Simple Templates
 
 ```python
 from prompt_template import PromptTemplate
@@ -30,28 +33,65 @@ from prompt_template import PromptTemplate
 # Create a template
 template = PromptTemplate("Hello ${name}! Welcome to ${location}.")
 
-# Render the template
+# Render with values
 result = template.to_string(name="Alice", location="Wonderland")
 print(result)  # Hello Alice! Welcome to Wonderland.
 ```
 
-### Named Templates
+### Default Values
 
 ```python
-# you can also set a name value on a template, which adds this data to any exception raised
+# Set default values that can be overridden later
+template = PromptTemplate("Hello ${name}! Your settings are: ${settings}")
 
-template = PromptTemplate(name="my_template", template="Hello ${name}! Welcome to ${location}.")
+# Set default values - they're safely deep copied
+template.set_default(
+    name="Guest",
+    settings={"theme": "light", "language": "en"}
+)
+
+# Use with defaults
+print(template.to_string())
+# Hello Guest! Your settings are: {"theme": "light", "language": "en"}
+
+# Override specific values
+print(template.to_string(name="Alice"))
+# Hello Alice! Your settings are: {"theme": "light", "language": "en"}
+
+# Override everything
+print(template.to_string(
+    name="Bob",
+    settings={"theme": "dark", "language": "fr"}
+))
+# Hello Bob! Your settings are: {"theme": "dark", "language": "fr"}
 ```
 
-### Working with JSON Templates
+### Named Templates
+
+Adding a name to your template enhances error messages with context:
+
+```python
+template = PromptTemplate(
+    name="user_greeting",
+    template="Hello ${name}! Welcome to ${location}."
+)
+```
+
+### Complex JSON Templates
+
+The library handles nested structures elegantly:
 
 ```python
 template = PromptTemplate("""
 {
-    "user": "${username}",
+    "user": {
+        "name": "${username}",
+        "role": "${role}"
+    },
     "settings": {
         "theme": "${theme}",
-        "notifications": ${notifications}
+        "notifications": ${notifications},
+        "preferences": ${preferences}
     }
 }
 """)
@@ -59,94 +99,131 @@ template = PromptTemplate("""
 # Values are automatically serialized
 result = template.to_string(
     username="john_doe",
+    role="admin",
     theme="dark",
-    notifications={"email": True, "push": False}
+    notifications={"email": True, "push": False},
+    preferences=["daily_digest", "weekly_report"]
 )
 ```
 
 ### Incremental Template Population
 
-You can populate template values incrementally using the `substitute` method:
+You can build templates incrementally, preserving defaults along the way:
 
 ```python
 # Start with a base template
-base = PromptTemplate("The ${animal} jumped over the ${obstacle} in ${location}.")
+base = PromptTemplate("""
+Query parameters:
+    Model: ${model}
+    Temperature: ${temperature}
+    User: ${user}
+    Prompt: ${prompt}
+""")
 
-# Partially populate values
-partial = base.substitute(animal="fox", obstacle="fence")
+# Set some defaults
+base.set_default(
+    model="gpt-4",
+    temperature=0.7
+)
+
+# Create a partially populated template
+user_template = base.substitute(user="alice")
 
 # Complete the template later
-final = partial.to_string(location="garden")
-print(final)  # The fox jumped over the fence in garden.
+final = user_template.to_string(prompt="Tell me a story")
 ```
 
-### Validation Features
+### Type Handling and Automatic Serialization
 
-The library includes built-in validation to catch common issues:
-
-```python
-# Missing variables raise MissingTemplateValuesError
-template = PromptTemplate("Hello ${name}!")
-try:
-    template.to_string()  # Raises MissingTemplateValuesError
-except MissingTemplateValuesError as e:
-    print(f"Missing values: {e.missing_values}")
-
-# Invalid keys raise InvalidTemplateKeysError
-try:
-    template.to_string(name="World", invalid_key="value")  # Raises InvalidTemplateKeysError
-except InvalidTemplateKeysError as e:
-    print(f"Invalid keys: {e.invalid_keys}")
-```
-
-### Automatic Value Serialization
-
-The library handles various Python types automatically:
+The library automatically handles various Python types:
 
 ```python
 from uuid import UUID
 from decimal import Decimal
+from datetime import datetime
 
-template = PromptTemplate("ID: ${id}, Amount: ${amount}, Data: ${data}")
+template = PromptTemplate("""
+{
+    "id": "${id}",
+    "amount": "${amount}",
+    "binary": "${binary_data}",
+    "metadata": ${metadata}
+}
+""")
+
 result = template.to_string(
     id=UUID("550e8400-e29b-41d4-a716-446655440000"),
     amount=Decimal("45.67"),
-    data={"key": "value"}
+    binary_data=b"Hello World",  # Automatically base64 encoded if needed
+    metadata={
+        "timestamp": datetime.now(),  # Serialized via JSON
+        "values": [1, 2, 3]
+    }
 )
 ```
 
 ### Custom Serialization
 
-You can customize how values are serialized by subclassing `PromptTemplate`:
+Extend the base class to customize value serialization:
 
 ```python
+from typing import Any
 from datetime import datetime
-import json
+from prompt_template import PromptTemplate as BasePromptTemplate
+import orjson
 
-class CustomTemplate(PromptTemplate):
+
+class PromptTemplate(BasePromptTemplate):
     @staticmethod
     def serializer(value: Any) -> str:
-        if isinstance(value, datetime):
-            return value.isoformat()
-        return json.dumps(value, default=str)
-
-# Use custom serialization
-template = CustomTemplate("Time: ${current_time}, Data: ${data}")
-result = template.to_string(
-    current_time=datetime.now(),
-    data={"complex": "object"}
-)
+        return orjson.dumps(value)  # use orjson for faster json serialization etc.
 ```
 
 ## Error Handling
 
-The library provides specific exception classes for different error cases:
+The library provides specific extensive errors:
 
-- `TemplateError`: Base exception for all template-related errors
-- `InvalidTemplateKeysError`: Raised when invalid keys are provided
-- `MissingTemplateValuesError`: Raised when required template values are missing
-- `TemplateSerializationError`: Raised when value serialization fails
+### Missing Values
+
+```python
+from prompt_template import MissingTemplateValuesError
+
+template = PromptTemplate("Hello ${name}!")
+try:
+    template.to_string()  # No values provided
+except MissingTemplateValuesError as e:
+    print(f"Missing values: {e.missing_values}")  # {'name'}
+```
+
+### Invalid Keys
+
+```python
+from prompt_template import InvalidTemplateKeysError
+
+template = PromptTemplate("Hello ${name}!")
+try:
+    template.to_string(name="World", invalid_key="value")
+except InvalidTemplateKeysError as e:
+    print(f"Invalid keys: {e.invalid_keys}")  # ['invalid_key']
+    print(f"Valid keys: {e.valid_keys}")  # {'name'}
+```
+
+### Serialization Errors
+
+```python
+from prompt_template import TemplateSerializationError
+
+template = PromptTemplate("Value: ${value}")
+try:
+    template.to_string(value=object())  # Non-serializable object
+except TemplateSerializationError as e:
+    print(f"Failed to serialize key '{e.key}': {e.original_error}")
+```
 
 ## License
 
 MIT License
+
+---
+
+If you find the library useful, please star it on [GitHub](https://github.com/Goldziher/prompt-template).

@@ -1,3 +1,15 @@
-from .prompt_template import InvalidTemplateKeysError, MissingTemplateValuesError, PromptTemplate, TemplateError
+from .prompt_template import (
+    InvalidTemplateKeysError,
+    MissingTemplateValuesError,
+    PromptTemplate,
+    TemplateError,
+    TemplateSerializationError,
+)
 
-__all__ = ["InvalidTemplateKeysError", "MissingTemplateValuesError", "PromptTemplate", "TemplateError"]
+__all__ = [
+    "InvalidTemplateKeysError",
+    "MissingTemplateValuesError",
+    "PromptTemplate",
+    "TemplateError",
+    "TemplateSerializationError",
+]
