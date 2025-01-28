@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from base64 import b64encode
+from copy import deepcopy
 from decimal import Decimal
 from json import dumps
 from re import Pattern
@@ -55,20 +56,21 @@ class PromptTemplate:
     """A string template with variable validation.
 
     Attributes:
-        valid_name_pattern: Regular expression pattern for valid variable names.
         serializer: Function to serialize values for substitution.
+        valid_name_pattern: Regular expression pattern for valid variable names.
 
     Args:
         template: The template string.
         name: Optional name for the template.
     """
 
-    valid_name_pattern: ClassVar[Pattern[str]] = compile_re(r"^[_a-zA-Z][_a-zA-Z0-9]*$")
     serializer: Callable[[Any], str] = staticmethod(lambda x: dumps(x))
+    valid_name_pattern: ClassVar[Pattern[str]] = compile_re(r"^[_a-zA-Z][_a-zA-Z0-9]*$")
 
     def __init__(self, template: str, name: str | None = None) -> None:
         self.name = name or ""
         self.template = self._validate_template(template)
+        self._defaults: dict[str, Any] = {}
 
     def _validate_template(self, template: str) -> str:  # noqa: C901
         """Validate the template format.
@@ -119,7 +121,11 @@ class PromptTemplate:
 
     @property
     def variables(self) -> set[str]:
-        """Get the variables in the template."""
+        """Get the variables in the template.
+
+        Returns:
+            The variables in the template.
+        """
         variables = set()
         i = 0
 
@@ -141,14 +147,26 @@ class PromptTemplate:
         return variables
 
     def prepare(self, substitute: bool, **kwargs: Any) -> dict[str, Any]:
-        """Prepare the keyword arguments for substitution."""
+        """Prepare the keyword arguments for substitution.
+
+        Args:
+            substitute: Whether to substitute PromptTemplate instances.
+            **kwargs: The values to substitute.
+
+        Raises:
+            InvalidTemplateKeysError: If invalid keys are provided.
+            TemplateSerializationError: If value serialization fails.
+
+        Returns:
+            The prepared mapping.
+        """
         if invalid_keys := [key for key in kwargs if key not in self.variables]:
             raise InvalidTemplateKeysError(invalid_keys, self.variables, self.name)
 
         mapping: dict[str, Any] = {}
 
-        try:
-            for key, value in kwargs.items():
+        for key, value in kwargs.items():
+            try:
                 if isinstance(value, PromptTemplate):
                     mapping[key] = value.template if substitute else str(value)
                 elif isinstance(value, str):
@@ -162,13 +180,20 @@ class PromptTemplate:
                         mapping[key] = b64encode(value).decode("ascii")
                 else:
                     mapping[key] = self.serializer(value)
-        except Exception as e:
-            raise TemplateSerializationError(key, e, self.name) from e
+            except Exception as e:  # noqa: PERF203
+                raise TemplateSerializationError(key, e, self.name) from e
 
         return mapping
 
     def substitute(self, **kwargs: Any) -> Self:
-        """Substitute the template."""
+        """Substitute the template.
+
+        Args:
+            **kwargs: The values to substitute.
+
+        Returns:
+            The substituted template.
+        """
         mapping = self.prepare(True, **kwargs)
 
         template = self.template
@@ -176,14 +201,45 @@ class PromptTemplate:
             template = template.replace(f"${{{k}}}", v)
 
         new_name = f"{self.name}_substitution" if self.name else None
-        return cast(Self, PromptTemplate(template=template, name=new_name))
+
+        new_template = cast(Self, PromptTemplate(template=template, name=new_name))
+        new_template._defaults = deepcopy(self._defaults)  # noqa: SLF001
+        return new_template
+
+    def set_default(self, **kwargs: Any) -> None:
+        """Set default values for the passed keyword arguments.
+
+        Raises:
+            InvalidTemplateKeysError: If invalid keys are provided.
+
+        Args:
+            **kwargs: The default values.
+
+        Returns:
+            None
+        """
+        if wrong_kwargs := [key for key in kwargs if key not in self.variables]:
+            raise InvalidTemplateKeysError(wrong_kwargs, self.variables, self.name)
+
+        self._defaults.update({k: deepcopy(v) for k, v in kwargs.items()})
 
     def to_string(self, **kwargs: Any) -> str:
-        """Convert the template to a string with substituted values."""
-        if missing_values := self.variables - set(kwargs.keys()):
+        """Convert the template to a string with substituted values.
+
+        Args:
+            **kwargs: The values to substitute.
+
+        Raises:
+            MissingTemplateValuesError: If required values are missing.
+
+        Returns:
+            The template string with substituted values.
+        """
+        values = {**self._defaults, **kwargs}
+        if missing_values := self.variables - set(values):
             raise MissingTemplateValuesError(missing_values, self.name)
 
-        mapping = self.prepare(False, **kwargs)
+        mapping = self.prepare(False, **values)
         template_string = self.template
 
         for key, value in mapping.items():

@@ -248,3 +248,159 @@ def test_complex_template() -> None:
         prompt="Write a short story about a detective solving a mystery",
         model_output="The detective solved the mystery by finding the missing clue",
     )
+
+
+def test_set_default_basic() -> None:
+    """Test basic default value setting works."""
+    template = PromptTemplate("Hello ${name}!")
+    template.set_default(name="World")
+    result = template.to_string()
+    assert result == "Hello World!"
+
+
+def test_set_default_with_override() -> None:
+    """Test that explicitly provided values override defaults."""
+    template = PromptTemplate("Hello ${name}!")
+    template.set_default(name="World")
+    result = template.to_string(name="Alice")
+    assert result == "Hello Alice!"
+
+
+def test_set_default_invalid_keys() -> None:
+    """Test error when invalid keys are provided to set_default."""
+    template = PromptTemplate("Hello ${name}!")
+    with pytest.raises(InvalidTemplateKeysError) as exc_info:
+        template.set_default(name="World", invalid_key="Value")
+    assert "invalid_key" in str(exc_info.value)
+
+
+def test_set_default_multiple() -> None:
+    """Test setting multiple default values."""
+    template = PromptTemplate("${greeting} ${name}! How is ${location}?")
+    template.set_default(greeting="Hello", location="London")
+
+    # Test with just the required non-default value
+    result = template.to_string(name="Alice")
+    assert result == "Hello Alice! How is London?"
+
+    # Test overriding some defaults but not others
+    result = template.to_string(name="Bob", greeting="Hi")
+    assert result == "Hi Bob! How is London?"
+
+
+def test_mutable_default_safety() -> None:
+    """Test that mutable defaults are properly deep copied."""
+    template = PromptTemplate("${config}")
+    default_config = {"theme": "dark", "settings": {"language": "en"}}
+    template.set_default(config=default_config)
+
+    # Modify the original dict
+    default_config["theme"] = "light"
+    default_config["settings"]["language"] = "fr"  # type: ignore[index]
+
+    # The template should maintain the original values
+    result = template.to_string()
+    assert '"theme": "dark"' in result
+    assert '"language": "en"' in result
+
+
+def test_defaults_in_substitution() -> None:
+    """Test that defaults are properly carried over in substitution."""
+    template = PromptTemplate("${greeting} ${name}! Settings: ${config}")
+    template.set_default(greeting="Hello", config={"theme": "dark"})
+
+    # Create a new template via substitution
+    new_template = template.substitute(name="Alice")
+
+    # The new template should have its own copy of defaults
+    result = new_template.to_string()
+    assert "Hello Alice!" in result
+    assert '"theme": "dark"' in result
+
+    # Modifying original template defaults shouldn't affect the new template
+    template.set_default(greeting="Hi")
+    assert "Hello Alice!" in new_template.to_string()
+
+
+def test_list_default_safety() -> None:
+    """Test that list defaults are properly deep copied."""
+    template = PromptTemplate("${items}")
+    default_items = [1, [2, 3], {"nested": 4}]
+    template.set_default(items=default_items)
+
+    # Modify the original list deeply
+    default_items[0] = 9
+    default_items[1][0] = 8  # type: ignore[index]
+    default_items[2]["nested"] = 7  # type: ignore[index]
+
+    # The template should maintain the original values
+    result = template.to_string()
+    assert '[1, [2, 3], {"nested": 4}]' in result
+
+
+def test_multiple_substitutions_with_defaults() -> None:
+    """Test that multiple substitutions maintain proper default isolation."""
+    template = PromptTemplate("${config} - ${name}")
+    template.set_default(config={"setting": "original"})
+
+    template1 = template.substitute(name="Alice")
+    template2 = template.substitute(name="Bob")
+
+    # Modify template1's defaults
+    template1.set_default(config={"setting": "modified"})
+
+    # template2 should maintain original defaults
+    assert '"setting": "original"' in template2.to_string()
+    assert '"setting": "modified"' in template1.to_string()
+
+
+def test_nested_template_defaults() -> None:
+    """Test defaults with nested template structures."""
+    template = PromptTemplate("""
+    {
+        "user": {
+            "name": "${name}",
+            "settings": ${settings}
+        }
+    }
+    """)
+
+    template.set_default(settings={"theme": "dark", "nested": {"option": "value"}})
+    result = template.to_string(name="Alice")
+
+    assert '"name": "Alice"' in result
+    assert '"theme": "dark"' in result
+    assert '"option": "value"' in result
+
+
+def test_default_value_serialization() -> None:
+    """Test that default values are properly serialized."""
+    template = PromptTemplate("${number}, ${decimal}, ${uuid_val}, ${bytes_val}")
+
+    from decimal import Decimal
+    from uuid import UUID
+
+    template.set_default(
+        number=42,
+        decimal=Decimal("3.14"),
+        uuid_val=UUID("550e8400-e29b-41d4-a716-446655440000"),
+        bytes_val=b"binary data",
+    )
+
+    result = template.to_string()
+    assert "42" in result
+    assert "3.14" in result
+    assert "550e8400-e29b-41d4-a716-446655440000" in result
+    assert "binary data" in result or "YmluYXJ5IGRhdGE=" in result  # base64 encoded if can't decode
+
+
+def test_template_equality_with_defaults() -> None:
+    """Test that templates with different defaults are still equal if template strings match."""
+    template1 = PromptTemplate("Hello ${name}!", "greeting")
+    template2 = PromptTemplate("Hello ${name}!", "greeting")
+
+    template1.set_default(name="Alice")
+    template2.set_default(name="Bob")
+
+    # Templates should be equal despite different defaults
+    assert template1 == template2
