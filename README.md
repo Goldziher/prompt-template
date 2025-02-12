@@ -198,20 +198,11 @@ class PromptTemplate(BasePromptTemplate):
     @staticmethod
     def serializer(value: Any) -> str:
         """Custom serializer with orjson for better performance.
-
-        Handles special cases and provides detailed error messages.
         """
         try:
-            # Handle special types first
-            if isinstance(value, (datetime, Decimal)):
-                return str(value)
-
-            # Use orjson for everything else
             return orjson.dumps(value).decode('utf-8')
-        except (TypeError, ValueError) as e:
-            raise TypeError(
-                f"Failed to serialize value of type {type(value).__name__}: {e}"
-            ) from e
+        except Exception:
+            return super().serializer(value)
 ```
 
 The custom serializer will be used automatically:
