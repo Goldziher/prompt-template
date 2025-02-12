@@ -145,11 +145,34 @@ def test_template_equality() -> None:
 
 def test_value_serialization() -> None:
     """Test serialization of different value types."""
-    template = PromptTemplate("${a}, ${b}, ${c}, ${d}")
-    result = template.to_string(a=123, b=45.67, c=UUID("550e8400-e29b-41d4-a716-446655440000"), d=b"binary data")
+    from datetime import datetime, timezone
+    from decimal import Decimal
+
+    template = PromptTemplate("${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g}")
+    test_datetime = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+    test_uuid = UUID("550e8400-e29b-41d4-a716-446655440000")
+    test_decimal = Decimal("45.67")
+
+    result = template.to_string(
+        a=123,  # int
+        b=[1, 2, 3],  # list
+        c={"key": "value"},  # dict
+        d=test_datetime,  # datetime
+        e=test_decimal,  # Decimal
+        f=test_uuid,  # UUID
+        g=True,  # bool
+    )
+
+    # Basic JSON types
     assert "123" in result
-    assert "45.67" in result
-    assert "550e8400-e29b-41d4-a716-446655440000" in result
+    assert "[1, 2, 3]" in result
+    assert '{"key": "value"}' in result
+    assert "True" in result  # Python's json.dumps() keeps boolean capitalization
+
+    # Special types with custom serialization
+    assert "2024-01-01T12:00:00+00:00" in result  # datetime in ISO format
+    assert "45.67" in result  # Decimal as string
+    assert "550e8400-e29b-41d4-a716-446655440000" in result  # UUID as string
 
 
 def test_complex_template() -> None:
@@ -378,7 +401,6 @@ def test_default_value_serialization() -> None:
     template = PromptTemplate("${number}, ${decimal}, ${uuid_val}, ${bytes_val}")
 
     from decimal import Decimal
-    from uuid import UUID
 
     template.set_default(
         number=42,

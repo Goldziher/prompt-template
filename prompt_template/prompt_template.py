@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from base64 import b64encode
 from copy import deepcopy
+from datetime import datetime
 from decimal import Decimal
 from json import dumps
 from re import Pattern
 from re import compile as compile_re
 from textwrap import dedent
-from typing import Any, Callable, ClassVar, Self, cast
+from typing import Any, Final, Self, cast
 from uuid import UUID
+
+VALID_NAME_PATTERN: Final[Pattern[str]] = compile_re(r"^[_a-zA-Z][_a-zA-Z0-9]*$")
 
 
 class TemplateError(Exception):
@@ -55,17 +58,10 @@ class TemplateSerializationError(TemplateError):
 class PromptTemplate:
     """A string template with variable validation.
 
-    Attributes:
-        serializer: Function to serialize values for substitution.
-        valid_name_pattern: Regular expression pattern for valid variable names.
-
     Args:
         template: The template string.
         name: Optional name for the template.
     """
-
-    serializer: Callable[[Any], str] = staticmethod(lambda x: dumps(x))
-    valid_name_pattern: ClassVar[Pattern[str]] = compile_re(r"^[_a-zA-Z][_a-zA-Z0-9]*$")
 
     def __init__(self, template: str, name: str | None = None) -> None:
         self.name = name or ""
@@ -105,7 +101,7 @@ class PromptTemplate:
                     var_name = template[start_pos + 2 : i]
                     if not var_name:
                         raise TemplateError("Empty variable name", self.name)
-                    if not self.valid_name_pattern.match(var_name):
+                    if not VALID_NAME_PATTERN.match(var_name):
                         raise TemplateError(f"Invalid variable name: '{var_name}'", self.name)
                 i += 1
             else:
@@ -118,6 +114,24 @@ class PromptTemplate:
             raise TemplateError("Unclosed brace", self.name)
 
         return template
+
+    @staticmethod
+    def serializer(value: Any) -> str:
+        """Serializer values into JSON.
+
+        Args:
+            value: The value to serialize.
+
+        Returns:
+            The serialized value.
+        """
+        if isinstance(value, datetime):
+            return value.isoformat()
+        if isinstance(value, Decimal):
+            return str(value)
+        if isinstance(value, UUID):
+            return str(value)
+        return dumps(value)
 
     @property
     def variables(self) -> set[str]:
@@ -138,7 +152,7 @@ class PromptTemplate:
                 j = i + 2
                 while j < len(self.template) and self.template[j] != "}":
                     j += 1
-                if j < len(self.template) and self.valid_name_pattern.match(self.template[i + 2 : j]):
+                if j < len(self.template) and VALID_NAME_PATTERN.match(self.template[i + 2 : j]):
                     variables.add(self.template[i + 2 : j])
                 i = j + 1
             else:

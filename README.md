@@ -146,7 +146,6 @@ template = PromptTemplate("""
 {
     "id": "${id}",
     "amount": "${amount}",
-    "binary": "${binary_data}",
     "metadata": ${metadata}
 }
 """)
@@ -154,7 +153,6 @@ template = PromptTemplate("""
 result = template.to_string(
     id=UUID("550e8400-e29b-41d4-a716-446655440000"),
     amount=Decimal("45.67"),
-    binary_data=b"Hello World",  # Automatically base64 encoded if needed
     metadata={
         "timestamp": datetime.now(),  # Serialized via JSON
         "values": [1, 2, 3]
