@@ -10,6 +10,7 @@
 .dist/
 .env
 .idea/
+.vscode/
 .mypy_cache
 .pytest_cache
 .python-version
