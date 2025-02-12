@@ -68,13 +68,24 @@ print(template.to_string(
 
 ### Named Templates
 
-Adding a name to your template enhances error messages with context:
+Adding a name to your template enhances error messages with context. Templates with the same name and content are considered equal:
 
 ```python
-template = PromptTemplate(
+# Create named templates
+template1 = PromptTemplate(
     name="user_greeting",
     template="Hello ${name}! Welcome to ${location}."
 )
+
+# Templates can be compared and used as dictionary keys
+template2 = PromptTemplate(
+    name="user_greeting",
+    template="Hello ${name}! Welcome to ${location}."
+)
+assert template1 == template2
+
+# Templates have a readable string representation
+print(template1)  # PromptTemplate [user_greeting]:\n\nHello ${name}! Welcome to ${location}.
 ```
 
 ### Complex JSON Templates
@@ -106,31 +117,42 @@ result = template.to_string(
 )
 ```
 
-### Incremental Template Population
+### Template Methods
 
-You can build templates incrementally, preserving defaults along the way:
+The library provides two main methods for populating templates:
 
 ```python
-# Start with a base template
-base = PromptTemplate("""
-Query parameters:
-    Model: ${model}
-    Temperature: ${temperature}
-    User: ${user}
-    Prompt: ${prompt}
+# to_string(): Validates inputs, uses defaults, and serializes values
+template = PromptTemplate("Hello ${name}!")
+template.set_default(name="Guest")
+result = template.to_string()  # Uses default
+result = template.to_string(name="Alice")  # Overrides default
+
+# substitute(): Lower-level method for partial population
+base = PromptTemplate("${greeting} ${name}!")
+partial = base.substitute(greeting="Hello")  # Returns a string
+final = PromptTemplate(partial).to_string(name="Alice")
+```
+
+### Nested Templates
+
+Templates can be nested within other templates:
+
+```python
+# Create nested templates
+inner = PromptTemplate("My name is ${name}")
+inner.set_default(name="Alice")
+
+outer = PromptTemplate("""
+User message:
+${message}
 """)
 
-# Set some defaults
-base.set_default(
-    model="gpt-4",
-    temperature=0.7
-)
-
-# Create a partially populated template
-user_template = base.substitute(user="alice")
-
-# Complete the template later
-final = user_template.to_string(prompt="Tell me a story")
+# Combine templates
+result = outer.to_string(message=inner.to_string())
+print(result)
+# User message:
+# My name is Alice
 ```
 
 ### Type Handling and Automatic Serialization
@@ -254,7 +276,3 @@ except TemplateSerializationError as e:
 ## License
 
 MIT License
-
----
-
-If you find the library useful, please star it on [GitHub](https://github.com/Goldziher/prompt-template).
