@@ -184,7 +184,7 @@ result = template.to_string(
 
 ### Custom Serialization
 
-Extend the base class to customize value serialization with proper error handling:
+You can override or extend serialization by subclassing `PromptTemplate` and implementing the `serializer` method:
 
 ```python
 from typing import Any
@@ -205,27 +205,9 @@ class PromptTemplate(BasePromptTemplate):
             return super().serializer(value)
 ```
 
-The custom serializer will be used automatically:
-
-```python
-template = PromptTemplate("""
-{
-    "timestamp": "${time}",
-    "amount": "${price}",
-    "data": ${complex_data}
-}
-""")
-
-result = template.to_string(
-    time=datetime.now(),
-    price=Decimal("45.67"),
-    complex_data={"nested": [1, 2, 3]}
-)
-```
-
 ## Error Handling
 
-The library provides specific extensive errors:
+The library provides specific errors classes for error handling:
 
 ### Missing Values
 
