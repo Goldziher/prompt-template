@@ -176,7 +176,7 @@ result = template.to_string(
     id=UUID("550e8400-e29b-41d4-a716-446655440000"),
     amount=Decimal("45.67"),
     metadata={
-        "timestamp": datetime.now(),  # Serialized via JSON
+        "timestamp": datetime.now(),
         "values": [1, 2, 3]
     }
 )
