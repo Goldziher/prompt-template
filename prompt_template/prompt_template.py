@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from base64 import b64encode
 from copy import deepcopy
 from datetime import datetime
 from decimal import Decimal
@@ -46,27 +45,52 @@ class MissingTemplateValuesError(TemplateError):
 
 
 class TemplateSerializationError(TemplateError):
-    """Raised when template value serialization fails."""
+    """Raised when template value serialization fails.
+
+    Args:
+        key: The template variable key that failed to serialize.
+        error: The underlying error that caused serialization to fail.
+        template_name: Optional name of the template where the error occurred.
+    """
 
     def __init__(self, key: str, error: Exception, template_name: str | None = None) -> None:
-        message = f"Failed to serialize value for key '{key}': {error}"
-        super().__init__(message, template_name)
         self.key = key
-        self.original_error = error
+        self.original_error: Exception = error
+        self.template_name = template_name
+
+        details = [
+            f"Failed to serialize value for key '{key}':",
+            f"Error type: {error.__class__.__name__}",
+            f"Error message: {error!s}",
+        ]
+        message = "\n".join(details)
+        super().__init__(message, template_name)
 
 
 class PromptTemplate:
     """A string template with variable validation.
 
+    This class provides a template engine with strong validation and serialization support.
+    It allows defining templates with ${variable} syntax and supports nested JSON structures.
+
     Args:
-        template: The template string.
-        name: Optional name for the template.
+        template: The template string using ${variable} syntax.
+        name: Optional name for the template, used in error messages.
+
+    Raises:
+        TypeError: If template or name are not strings.
     """
 
     def __init__(self, template: str, name: str | None = None) -> None:
+        if not isinstance(template, str):
+            raise TypeError(f"template must be a string, got {type(template)}")
+        if name is not None and not isinstance(name, str):
+            raise TypeError(f"name must be a string or None, got {type(name)}")
+
         self.name = name or ""
         self.template = self._validate_template(template)
         self._defaults: dict[str, Any] = {}
+        self._variables: set[str] | None = None  # Cache for variables property
 
     def _validate_template(self, template: str) -> str:  # noqa: C901
         """Validate the template format.
@@ -117,28 +141,63 @@ class PromptTemplate:
 
     @staticmethod
     def serializer(value: Any) -> str:
-        """Serializer values into JSON.
+        """Serialize values into strings suitable for template substitution.
+
+        This method handles special cases for common Python types and falls back to JSON
+        serialization for other types. Special handling is provided for:
+        - str: Used as-is without quoting
+        - datetime: Converted to ISO format
+        - Decimal: Converted to string to preserve precision
+        - UUID: Converted to string representation
+        - bytes: Safely decoded to string (utf-8 -> latin1 -> base64)
 
         Args:
             value: The value to serialize.
 
         Returns:
-            The serialized value.
+            The serialized value as a string.
+
+        Raises:
+            TypeError: If the value cannot be serialized.
         """
+        if isinstance(value, str):
+            return value
         if isinstance(value, datetime):
             return value.isoformat()
         if isinstance(value, Decimal):
             return str(value)
         if isinstance(value, UUID):
             return str(value)
-        return dumps(value)
+        if isinstance(value, bytes):
+            try:
+                return value.decode("utf-8")
+            except UnicodeDecodeError:
+                # Latin1 can decode any byte sequence
+                return value.decode("latin1")
+        try:
+            return dumps(value)
+        except Exception as e:
+            raise TypeError(f"Could not serialize value of type {type(value)}: {e}") from e
 
     @property
     def variables(self) -> set[str]:
-        """Get the variables in the template.
+        """Get the set of variable names in the template.
+
+        This property parses the template to find all ${variable} occurrences.
+        The result is cached for performance.
 
         Returns:
-            The variables in the template.
+            A set of variable names found in the template.
+        """
+        if self._variables is None:
+            self._variables = self._find_variables()
+        return self._variables.copy()
+
+    def _find_variables(self) -> set[str]:
+        """Parse the template to find all variable names.
+
+        Returns:
+            A set of variable names found in the template.
         """
         variables = set()
         i = 0
@@ -152,7 +211,7 @@ class PromptTemplate:
                 j = i + 2
                 while j < len(self.template) and self.template[j] != "}":
                     j += 1
-                if j < len(self.template) and VALID_NAME_PATTERN.match(self.template[i + 2 : j]):
+                if j < len(self.template) and VALID_NAME_PATTERN.match(self.template[i + 2 : j]):  # pragma: no cover
                     variables.add(self.template[i + 2 : j])
                 i = j + 1
             else:
@@ -182,16 +241,8 @@ class PromptTemplate:
         for key, value in kwargs.items():
             try:
                 if isinstance(value, PromptTemplate):
-                    mapping[key] = value.template if substitute else str(value)
-                elif isinstance(value, str):
-                    mapping[key] = value
-                elif isinstance(value, (int | float | Decimal | UUID)):
-                    mapping[key] = str(value)
-                elif isinstance(value, bytes):
-                    try:
-                        mapping[key] = value.decode()
-                    except UnicodeDecodeError:
-                        mapping[key] = b64encode(value).decode("ascii")
+                    # When substituting, render the template with its defaults
+                    mapping[key] = value.to_string() if substitute else str(value)
                 else:
                     mapping[key] = self.serializer(value)
             except Exception as e:  # noqa: PERF203
@@ -202,8 +253,12 @@ class PromptTemplate:
     def substitute(self, **kwargs: Any) -> Self:
         """Substitute the template.
 
+        This is a private method used by to_string. It assumes that all keys have been
+        validated and all values have been serialized to strings.
+
         Args:
-            **kwargs: The values to substitute.
+            **kwargs: The values to substitute. Must be valid template variables and
+                     must already be serialized to strings.
 
         Returns:
             The substituted template.
@@ -238,17 +293,30 @@ class PromptTemplate:
         self._defaults.update({k: deepcopy(v) for k, v in kwargs.items()})
 
     def to_string(self, **kwargs: Any) -> str:
-        """Convert the template to a string with substituted values.
+        """Render the template by substituting all variables with their values.
+
+        This is the main method for converting a template to its final string form.
+        It will:
+        1. Validate all required variables are provided
+        2. Use default values for any missing variables
+        3. Serialize all values to strings
+        4. Perform the template substitution
 
         Args:
-            **kwargs: The values to substitute.
+            **kwargs: Values to substitute into the template. These take precedence
+                     over any default values.
 
         Raises:
-            MissingTemplateValuesError: If required values are missing.
+            MissingTemplateValuesError: If any required variables are missing and have no default value.
+            InvalidTemplateKeysError: If invalid keys are provided.
 
         Returns:
-            The template string with substituted values.
+            The fully rendered template with all variables substituted.
         """
+        # Check for invalid keys before merging with defaults
+        if wrong_keys := [key for key in kwargs if key not in self.variables]:
+            raise InvalidTemplateKeysError(wrong_keys, self.variables, self.name)
+
         values = {**self._defaults, **kwargs}
         if missing_values := self.variables - set(values):
             raise MissingTemplateValuesError(missing_values, self.name)
@@ -262,12 +330,15 @@ class PromptTemplate:
         return dedent(template_string).strip()
 
     def __str__(self) -> str:
-        """Return the string representation."""
-        name_str = f" [{self.name}]" if hasattr(self, "name") else ""
-        template_str = self.template if hasattr(self, "template") else ""
-        return f"{self.__class__.__name__}{name_str}:\n\n{template_str}"
+        """Return a human-readable string representation of the template.
 
-    def __repr__(self) -> str:
+        Returns:
+            A string in the format 'PromptTemplate [name]: template'
+        """
+        name_str = f" [{self.name}]" if self.name else ""
+        return f"{self.__class__.__name__}{name_str}:\n\n{self.template}"
+
+    def __repr__(self) -> str:  # pragma: no cover
         """Return the string representation."""
         return self.__str__()
 

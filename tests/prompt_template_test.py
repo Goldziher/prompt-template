@@ -6,6 +6,7 @@ from prompt_template import (
     MissingTemplateValuesError,
     PromptTemplate,
     TemplateError,
+    TemplateSerializationError,
 )
 
 
@@ -148,10 +149,11 @@ def test_value_serialization() -> None:
     from datetime import datetime, timezone
     from decimal import Decimal
 
-    template = PromptTemplate("${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g}")
+    template = PromptTemplate("${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g}, ${h}")
     test_datetime = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
     test_uuid = UUID("550e8400-e29b-41d4-a716-446655440000")
     test_decimal = Decimal("45.67")
+    test_bytes = b"Hello World"
 
     result = template.to_string(
         a=123,  # int
@@ -161,18 +163,20 @@ def test_value_serialization() -> None:
         e=test_decimal,  # Decimal
         f=test_uuid,  # UUID
         g=True,  # bool
+        h=test_bytes,  # bytes
     )
 
     # Basic JSON types
     assert "123" in result
     assert "[1, 2, 3]" in result
     assert '{"key": "value"}' in result
-    assert "True" in result  # Python's json.dumps() keeps boolean capitalization
+    assert "true" in result  # JSON uses lowercase for booleans
 
     # Special types with custom serialization
     assert "2024-01-01T12:00:00+00:00" in result  # datetime in ISO format
     assert "45.67" in result  # Decimal as string
     assert "550e8400-e29b-41d4-a716-446655440000" in result  # UUID as string
+    assert "Hello World" in result  # UTF-8 decoded bytes
 
 
 def test_complex_template() -> None:
@@ -426,3 +430,147 @@ def test_template_equality_with_defaults() -> None:
 
     # Templates should be equal despite different defaults
     assert template1 == template2
+
+
+def test_template_constructor_validation() -> None:
+    """Test validation of constructor arguments."""
+    with pytest.raises(TypeError, match="template must be a string"):
+        PromptTemplate(123)  # type: ignore
+
+    with pytest.raises(TypeError, match="name must be a string"):
+        PromptTemplate("${a}", name=123)  # type: ignore
+
+
+def test_serialization_errors() -> None:
+    """Test error handling during value serialization."""
+
+    class Unserializable:
+        pass
+
+    template = PromptTemplate("${a}")
+    with pytest.raises(TemplateSerializationError) as exc_info:
+        template.to_string(a=Unserializable())
+
+    assert "Failed to serialize value for key 'a'" in str(exc_info.value)
+    assert isinstance(exc_info.value.original_error, TypeError)
+
+
+def test_template_name_in_errors() -> None:
+    """Test that template name is included in error messages."""
+    template = PromptTemplate("${a}", name="test_template")
+
+    with pytest.raises(MissingTemplateValuesError) as exc_info_missing:
+        template.to_string()
+    assert "[Template: test_template]" in str(exc_info_missing.value)
+
+    with pytest.raises(InvalidTemplateKeysError) as exc_info_invalid:
+        template.to_string(a="value", invalid_key="value")
+    assert "[Template: test_template]" in str(exc_info_invalid.value)
+
+
+def test_variables_caching() -> None:
+    """Test that variables property caches its results."""
+    template = PromptTemplate("${a} ${b} ${c}")
+
+    # First access should compute the variables
+    vars1 = template.variables
+    assert vars1 == {"a", "b", "c"}
+
+    # Second access should use cached value
+    vars2 = template.variables
+    assert vars2 == {"a", "b", "c"}
+
+    # Modifying the returned set shouldn't affect the cache
+    vars1.add("d")
+    assert template.variables == {"a", "b", "c"}
+
+
+def test_serializer_edge_cases() -> None:
+    """Test edge cases in the serializer method."""
+    # Test bytes serialization with different encodings
+    assert PromptTemplate.serializer(b"hello") == "hello"  # UTF-8 decodable
+    assert PromptTemplate.serializer(b"\xff\xff") == "ÿÿ"  # Latin1 fallback
+
+    # Test various Python types
+    assert PromptTemplate.serializer(None) == "null"
+    assert PromptTemplate.serializer(True) == "true"
+    assert PromptTemplate.serializer(123) == "123"
+    assert PromptTemplate.serializer([1, 2, 3]) == "[1, 2, 3]"
+
+
+def test_prepare_edge_cases() -> None:
+    """Test edge cases in prepare method."""
+    template = PromptTemplate("${var}")
+
+    # Test empty string value
+    result = template.prepare(True, var="")
+    assert result["var"] == ""
+
+    # Test None value
+    result = template.prepare(True, var=None)
+    assert result["var"] == "null"
+
+    # Test nested template with substitute=False
+    nested = PromptTemplate("${inner}")
+    result = template.prepare(False, var=nested)
+    assert "PromptTemplate" in result["var"]
+
+
+def test_template_equality_edge_cases() -> None:
+    """Test edge cases in template equality comparison."""
+    template1 = PromptTemplate("test", name="name1")
+    template2 = PromptTemplate("test", name="name1")  # Same name
+    template3 = PromptTemplate("different", name="name1")
+
+    # Test same template and name
+    assert template1 == template2
+
+    # Test different templates
+    assert template1 != template3
+
+    # Test comparison with non-PromptTemplate
+    assert template1 != "test"
+
+    # Test hash equality
+    assert hash(template1) == hash(template2)
+    assert hash(template1) != hash(template3)
+
+
+def test_template_equality_different_types() -> None:
+    """Test template equality with different types."""
+    template = PromptTemplate("test")
+    # Test comparison with None
+    assert template != None  # noqa: E711
+    # Test comparison with different type
+    assert template != 42
+
+
+def test_prepare_complex_cases() -> None:
+    """Test complex cases in prepare method."""
+    template = PromptTemplate("${var}")
+    nested = PromptTemplate("${inner}")
+    nested.set_default(inner="value")
+
+    # Test nested template with substitute=True
+    result = template.prepare(True, var=nested)
+    assert result["var"] == "value"  # Substituted value
+
+    # Test with non-string, non-template value that needs JSON serialization
+    result = template.prepare(True, var={"key": "value"})
+    assert result["var"] == '{"key": "value"}'
+
+    # Test with invalid value that can't be serialized
+    class UnserializableObject:
+        pass
+
+    with pytest.raises(TemplateSerializationError):
+        template.prepare(True, var=UnserializableObject())
+
+    # Test with invalid key
+    with pytest.raises(InvalidTemplateKeysError):
+        template.prepare(True, invalid_key="value")
+
+    # Test with nested template and substitute=False
+    result = template.prepare(False, var=nested)
+    assert isinstance(result["var"], str)
+    assert "PromptTemplate" in result["var"]

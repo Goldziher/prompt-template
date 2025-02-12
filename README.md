@@ -162,11 +162,12 @@ result = template.to_string(
 
 ### Custom Serialization
 
-Extend the base class to customize value serialization:
+Extend the base class to customize value serialization with proper error handling:
 
 ```python
 from typing import Any
 from datetime import datetime
+from decimal import Decimal
 from prompt_template import PromptTemplate as BasePromptTemplate
 import orjson
 
@@ -174,7 +175,39 @@ import orjson
 class PromptTemplate(BasePromptTemplate):
     @staticmethod
     def serializer(value: Any) -> str:
-        return orjson.dumps(value)  # use orjson for faster json serialization etc.
+        """Custom serializer with orjson for better performance.
+
+        Handles special cases and provides detailed error messages.
+        """
+        try:
+            # Handle special types first
+            if isinstance(value, (datetime, Decimal)):
+                return str(value)
+
+            # Use orjson for everything else
+            return orjson.dumps(value).decode('utf-8')
+        except (TypeError, ValueError) as e:
+            raise TypeError(
+                f"Failed to serialize value of type {type(value).__name__}: {e}"
+            ) from e
+```
+
+The custom serializer will be used automatically:
+
+```python
+template = PromptTemplate("""
+{
+    "timestamp": "${time}",
+    "amount": "${price}",
+    "data": ${complex_data}
+}
+""")
+
+result = template.to_string(
+    time=datetime.now(),
+    price=Decimal("45.67"),
+    complex_data={"nested": [1, 2, 3]}
+)
 ```
 
 ## Error Handling
