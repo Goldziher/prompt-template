@@ -271,7 +271,7 @@ class PromptTemplate:
 
         new_name = f"{self.name}_substitution" if self.name else None
 
-        new_template = cast(Self, PromptTemplate(template=template, name=new_name))
+        new_template = cast("Self", PromptTemplate(template=template, name=new_name))
         new_template._defaults = deepcopy(self._defaults)  # noqa: SLF001
         return new_template
 
