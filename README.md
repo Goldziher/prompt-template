@@ -3,6 +3,14 @@
 A lightweight, zero-dependency Python library for managing LLM prompt templates. Built on the design principles of
 `string.Template` but with enhanced features specifically designed for LLM prompt engineering.
 
+## Support This Project
+
+If you find prompt-template helpful, please consider sponsoring the development:
+
+<a href="https://github.com/sponsors/Goldziher"><img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github-sponsors" alt="Sponsor on GitHub" height="32"></a>
+
+Your support helps maintain and improve this library for the community! 🚀
+
 ## Features
 
 - Strong template validation with detailed error messages
