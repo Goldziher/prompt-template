@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import UUID
 
 import pytest
@@ -146,8 +148,6 @@ def test_template_equality() -> None:
 
 def test_value_serialization() -> None:
     """Test serialization of different value types."""
-    from datetime import datetime, timezone
-    from decimal import Decimal
 
     template = PromptTemplate("${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g}, ${h}")
     test_datetime = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
@@ -403,8 +403,6 @@ def test_nested_template_defaults() -> None:
 def test_default_value_serialization() -> None:
     """Test that default values are properly serialized."""
     template = PromptTemplate("${number}, ${decimal}, ${uuid_val}, ${bytes_val}")
-
-    from decimal import Decimal
 
     template.set_default(
         number=42,
