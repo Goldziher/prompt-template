@@ -1,54 +1,54 @@
 [build-system]
 build-backend = "setuptools.build_meta"
 
-requires = [ "setuptools", "setuptools-scm" ]
+requires = ["setuptools", "setuptools-scm"]
 
 [project]
 name = "prompt-template"
 version = "1.2.0"
 description = "A robust zero-dependency library for creating prompt templates"
 readme = "README.md"
-keywords = [ "ai", "llm", "prompt-engineering", "prompt-template", "templating" ]
+keywords = ["ai", "llm", "prompt-engineering", "prompt-template", "templating"]
 license = { text = "MIT" }
-authors = [ { name = "Na'aman Hirschfeld", email = "nhirschfed@gmail.com" } ]
+authors = [{ name = "Na'aman Hirschfeld", email = "nhirschfed@gmail.com" }]
 requires-python = ">=3.10"
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Topic :: Scientific/Engineering :: Artificial Intelligence",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Topic :: Text Processing :: General",
-  "Topic :: Utilities",
-  "Typing :: Typed",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: General",
+    "Topic :: Utilities",
+    "Typing :: Typed",
 ]
-dependencies = [  ]
+dependencies = []
 
 urls.homepage = "https://github.com/Goldziher/prompt-template"
 
 [dependency-groups]
 dev = [
-  "covdefaults>=2.3.0",
-  "faker>=33.3.1",
-  "mypy>=1.14.1",
-  "pre-commit>=4.0.1",
-  "pytest>=8.3.4",
-  "pytest-cov>=6.0.0",
-  "ruff>=0.9.1",
-  "uv-bump",
+    "covdefaults>=2.3.0",
+    "faker>=33.3.1",
+    "mypy>=1.14.1",
+    "pre-commit>=4.0.1",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.9.1",
+    "uv-bump",
 ]
 
 [tool.setuptools.packages.find]
-include = [ "prompt_template" ]
+include = ["prompt_template"]
 
 [tool.setuptools.package-data]
-prompt_template = [ "py.typed" ]
+prompt_template = ["py.typed"]
 
 [tool.uv.sources]
 uv-bump = { git = "https://github.com/Goldziher/uv-bump" }
@@ -56,39 +56,39 @@ uv-bump = { git = "https://github.com/Goldziher/uv-bump" }
 [tool.ruff]
 target-version = "py39"
 line-length = 120
-src = [ "src", "tests" ]
+src = ["src", "tests"]
 
 format.docstring-code-line-length = 120
 format.docstring-code-format = true
-lint.select = [ "ALL" ]
+lint.select = ["ALL"]
 lint.ignore = [
-  "ANN401",  # Dynamically typed ANY
-  "COM812",  # Conflicts with formatter
-  "D100",    # Missing docstring in public module
-  "D104",    # Missing docstring in public package
-  "D107",    # Missing docstring in __init__
-  "D205",    # 1 blank line required between summary line and description
-  "E501",    # Line too long, handled by ruff format
-  "EM",      # Exception messages,
-  "FBT",     # Anti-Boolean crusade
-  "ISC001",  # Conflicts with formatter
-  "PLR0911", # Too many return statements
-  "TRY",     # Try except block, rules are too strict
+    "ANN401",  # Dynamically typed ANY
+    "COM812",  # Conflicts with formatter
+    "D100",    # Missing docstring in public module
+    "D104",    # Missing docstring in public package
+    "D107",    # Missing docstring in __init__
+    "D205",    # 1 blank line required between summary line and description
+    "E501",    # Line too long, handled by ruff format
+    "EM",      # Exception messages,
+    "FBT",     # Anti-Boolean crusade
+    "ISC001",  # Conflicts with formatter
+    "PLR0911", # Too many return statements
+    "TRY",     # Try except block, rules are too strict
 ]
 lint.per-file-ignores."tests/**/*.*" = [
-  "ARG001",
-  "D",
-  "N815",
-  "PGH003",
-  "PLR2004",
-  "PT006",
-  "PT007",
-  "PT013",
-  "RUF012",
-  "S",
+    "ARG001",
+    "D",
+    "N815",
+    "PGH003",
+    "PLR2004",
+    "PT006",
+    "PT007",
+    "PT013",
+    "RUF012",
+    "S",
 ]
 
-lint.isort.known-first-party = [ "src", "tests" ]
+lint.isort.known-first-party = ["src", "tests"]
 lint.pydocstyle.convention = "google"
 
 [tool.pyproject-fmt]
@@ -96,16 +96,16 @@ keep_full_version = true
 max_supported_python = "3.13"
 
 [tool.coverage.run]
-omit = [ "tests/*" ]
-plugins = [ "covdefaults" ]
-source = [ "src" ]
+omit = ["tests/*"]
+plugins = ["covdefaults"]
+source = ["src"]
 
 [tool.coverage.report]
-exclude_lines = [ 'if TYPE_CHECKING:' ]
+exclude_lines = ['if TYPE_CHECKING:']
 fail_under = 100
 
 [tool.mypy]
-packages = [ "src", "tests" ]
+packages = ["src", "tests"]
 python_version = "3.13"
 implicit_reexport = false
 show_error_codes = true
