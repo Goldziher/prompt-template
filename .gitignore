@@ -20,3 +20,6 @@ __pycache__/
 coverage.xml
 prompt_template.egg-info/
 requirements.txt
+
+# polylint result cache
+.polylint/
