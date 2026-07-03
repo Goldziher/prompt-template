@@ -53,48 +53,6 @@ prompt_template = ["py.typed"]
 [tool.uv.sources]
 uv-bump = { git = "https://github.com/Goldziher/uv-bump" }
 
-[tool.ruff]
-target-version = "py39"
-line-length = 120
-src = ["src", "tests"]
-
-format.docstring-code-line-length = 120
-format.docstring-code-format = true
-lint.select = ["ALL"]
-lint.ignore = [
-    "ANN401",  # Dynamically typed ANY
-    "COM812",  # Conflicts with formatter
-    "D100",    # Missing docstring in public module
-    "D104",    # Missing docstring in public package
-    "D107",    # Missing docstring in __init__
-    "D205",    # 1 blank line required between summary line and description
-    "E501",    # Line too long, handled by ruff format
-    "EM",      # Exception messages,
-    "FBT",     # Anti-Boolean crusade
-    "ISC001",  # Conflicts with formatter
-    "PLR0911", # Too many return statements
-    "TRY",     # Try except block, rules are too strict
-]
-lint.per-file-ignores."tests/**/*.*" = [
-    "ARG001",
-    "D",
-    "N815",
-    "PGH003",
-    "PLR2004",
-    "PT006",
-    "PT007",
-    "PT013",
-    "RUF012",
-    "S",
-]
-
-lint.isort.known-first-party = ["src", "tests"]
-lint.pydocstyle.convention = "google"
-
-[tool.pyproject-fmt]
-keep_full_version = true
-max_supported_python = "3.13"
-
 [tool.coverage.run]
 omit = ["tests/*"]
 plugins = ["covdefaults"]
