@@ -7,3 +7,18 @@ lockfile_platforms = ["linux-x64", "linux-arm64", "macos-arm64", "windows-x64"]
 python = "3.13.18"
 uv = "0.13.6"
 "github:Goldziher/poly" = "0.31.2"
+
+[tasks.setup]
+description = "Install the toolchain and sync the dev environment"
+run = ["mise install", "uv sync --all-extras --dev"]
+
+[tasks.test]
+description = "Run the test suite"
+run = "uv run pytest"
+
+[tasks.build]
+description = "Build the sdist and wheel"
+run = "uv build"
+
+[task_config]
+includes = ["mise-tasks", "mise-tasks/shared.toml"]
