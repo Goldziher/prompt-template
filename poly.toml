@@ -8,13 +8,13 @@ trim_trailing_whitespace = true
 
 [discovery]
 exclude = [
-    "**/*.lock",
-    "**/*.svg",
-    "**/Cargo.lock",
-    "**/go.sum",
-    "**/package-lock.json",
-    "**/pnpm-lock.yaml",
-    "**/uv.lock",
+  "**/*.lock",
+  "**/*.svg",
+  "**/Cargo.lock",
+  "**/go.sum",
+  "**/package-lock.json",
+  "**/pnpm-lock.yaml",
+  "**/uv.lock",
 ]
 
 [per-file-ignores]
@@ -34,31 +34,31 @@ stages = ["pre-commit"]
 
 [hooks.builtin]
 lint = { exclude = [
-    "**/*.lock",
-    "**/*.svg",
-    "**/Cargo.lock",
-    "**/go.sum",
-    "**/package-lock.json",
-    "**/pnpm-lock.yaml",
-    "**/uv.lock",
+  "**/*.lock",
+  "**/*.svg",
+  "**/Cargo.lock",
+  "**/go.sum",
+  "**/package-lock.json",
+  "**/pnpm-lock.yaml",
+  "**/uv.lock",
 ] }
 fmt = { exclude = [
-    "**/*.lock",
-    "**/*.svg",
-    "**/Cargo.lock",
-    "**/go.sum",
-    "**/package-lock.json",
-    "**/pnpm-lock.yaml",
-    "**/uv.lock",
+  "**/*.lock",
+  "**/*.svg",
+  "**/Cargo.lock",
+  "**/go.sum",
+  "**/package-lock.json",
+  "**/pnpm-lock.yaml",
+  "**/uv.lock",
 ] }
 file_safety = { exclude = [
-    "**/*.lock",
-    "**/*.svg",
-    "**/Cargo.lock",
-    "**/go.sum",
-    "**/package-lock.json",
-    "**/pnpm-lock.yaml",
-    "**/uv.lock",
+  "**/*.lock",
+  "**/*.svg",
+  "**/Cargo.lock",
+  "**/go.sum",
+  "**/package-lock.json",
+  "**/pnpm-lock.yaml",
+  "**/uv.lock",
 ] }
 
 # --- catalog tools (standalone binaries, PATH-probed) ---
