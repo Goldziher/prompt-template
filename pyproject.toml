@@ -41,7 +41,6 @@ dev = [
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
     "ruff>=0.9.1",
-    "uv-bump",
 ]
 
 [tool.setuptools.packages.find]
@@ -49,9 +48,6 @@ include = ["prompt_template"]
 
 [tool.setuptools.package-data]
 prompt_template = ["py.typed"]
-
-[tool.uv.sources]
-uv-bump = { git = "https://github.com/Goldziher/uv-bump" }
 
 [tool.coverage.run]
 omit = ["tests/*"]
