@@ -3,57 +3,57 @@
 lockfile_version = 3
 
 [[tools."github:Goldziher/poly"]]
-version = "0.31.2"
+version = "0.32.1"
 backend = "github:Goldziher/poly"
-specifiers = ["0.31.2"]
+specifiers = ["0.32.1"]
 
 [tools."github:Goldziher/poly"."platforms.linux-arm64"]
-checksum = "sha256:e7e8b2db4e0c4e23300dbabd87da37ef578e9469240bd9d0d860115eed81255c"
+checksum = "sha256:ac57c466acdb03312f2b1d32dd0d7ca09d96c8c4cf1d8a66f408fc8c59d23018"
 checksum_source = "mise-versions"
-url = "https://github.com/Goldziher/poly/releases/download/v0.31.2/poly-0.31.2-aarch64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/686239271"
+url = "https://github.com/Goldziher/poly/releases/download/v0.32.1/poly-0.32.1-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/694708720"
 
 [tools."github:Goldziher/poly"."platforms.linux-x64"]
-checksum = "sha256:6f4c947b6a6fe5a37e1e5d9bba87919d79a1f1d26c244df6f51111944dbebcb4"
+checksum = "sha256:5a440909839644c642113e9a46933c6872c141bdbe4f26c2975db0ca30fb3050"
 checksum_source = "mise-versions"
-url = "https://github.com/Goldziher/poly/releases/download/v0.31.2/poly-0.31.2-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/686253634"
+url = "https://github.com/Goldziher/poly/releases/download/v0.32.1/poly-0.32.1-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/694707555"
 
 [tools."github:Goldziher/poly"."platforms.macos-arm64"]
-checksum = "sha256:a0fdc6129ed3f7f9257d6c0bf05573f970c35669cd978292de618299cc050632"
+checksum = "sha256:fb7355b1cd999b00268a77cbc9cb72e562c9c61a152fdcbdcd6e289e09534201"
 checksum_source = "mise-versions"
-url = "https://github.com/Goldziher/poly/releases/download/v0.31.2/poly-0.31.2-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/686270380"
+url = "https://github.com/Goldziher/poly/releases/download/v0.32.1/poly-0.32.1-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/694726994"
 
 [tools."github:Goldziher/poly"."platforms.windows-x64"]
-checksum = "sha256:7b6aada1b8f55c97c8907990f73605bb4d160b9de8eb243b8a2d1eb202835407"
+checksum = "sha256:b31bd4033f5fc43543525487f905b02ae49837f74e11ee8b03e231738dac96a2"
 checksum_source = "mise-versions"
-url = "https://github.com/Goldziher/poly/releases/download/v0.31.2/poly-0.31.2-x86_64-pc-windows-msvc.zip"
-url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/686266048"
+url = "https://github.com/Goldziher/poly/releases/download/v0.32.1/poly-0.32.1-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/Goldziher/poly/releases/assets/694766438"
 
 [[tools.python]]
-version = "3.13.18"
+version = "3.15.2"
 backend = "core:python"
-specifiers = ["3.13.18"]
+specifiers = ["3.15.2"]
 
 [tools.python."platforms.linux-arm64"]
-checksum = "sha256:578d9da1983463ffb0c8c98ab0da2f18177f44069328eb0af847860c1eb05c3e"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.13.18+20261026-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:0f23351c03b39beb880de668976074fcc3c082d9c3b03d0b43185632b2b270a0"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.15.2+20261026-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:df15fe60d3ff55bf9dcf25824b5572756bb8816ff93865a273d3301d7066a8b7"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.13.18+20261026-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:7b03163a980c607ba8194709d4a4086735a7a9c488cc475b098157306927b36b"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.15.2+20261026-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-arm64"]
-checksum = "sha256:8392b6ea51d94391befb2c31ebe75463f045d0b69dfcf5e1bb3234e1f5fa3405"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.13.18+20261026-aarch64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:1b1b03fca8aa351698403f3d100ee83db7a5d99748fc7707681ac31a6a846ad9"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.15.2+20261026-aarch64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.windows-x64"]
-checksum = "sha256:7369f7a35f261222a6ac8b3a87c1c88eeebee8af945d85346202591a64038dd3"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.13.18+20261026-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+checksum = "sha256:02e532b60e720aa3d77e757c349ae9cc945441c05851fa646336fc9ff0403041"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.15.2+20261026-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.uv]]

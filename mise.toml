@@ -4,9 +4,9 @@ lockfile = true
 lockfile_platforms = ["linux-x64", "linux-arm64", "macos-arm64", "windows-x64"]
 
 [tools]
-python = "3.13.18"
+python = "3.15.2"
 uv = "0.13.6"
-"github:Goldziher/poly" = "0.31.2"
+"github:Goldziher/poly" = "0.32.1"
 
 [tasks.setup]
 description = "Install the toolchain and sync the dev environment"
