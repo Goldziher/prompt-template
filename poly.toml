@@ -21,7 +21,7 @@ exclude = [
 "tests/**/*.*" = ["ARG001", "D", "N815", "PGH003", "PLR2004", "PT006", "PT007", "PT013", "RUF012", "S"]
 
 [lint.python.ruff]
-target_version = "py39"
+target_version = "py311"
 src = ["src", "tests"]
 pydocstyle_convention = "google"
 known_first_party = ["src", "tests"]
