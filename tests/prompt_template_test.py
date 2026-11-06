@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -150,7 +150,7 @@ def test_value_serialization() -> None:
     """Test serialization of different value types."""
 
     template = PromptTemplate("${a}, ${b}, ${c}, ${d}, ${e}, ${f}, ${g}, ${h}")
-    test_datetime = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+    test_datetime = datetime(2024, 1, 1, 12, 0, tzinfo=UTC)
     test_uuid = UUID("550e8400-e29b-41d4-a716-446655440000")
     test_decimal = Decimal("45.67")
     test_bytes = b"Hello World"
