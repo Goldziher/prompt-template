@@ -138,8 +138,8 @@ result = template.to_string(name="Alice")  # Overrides default
 
 # substitute(): Lower-level method for partial population
 base = PromptTemplate("${greeting} ${name}!")
-partial = base.substitute(greeting="Hello")  # Returns a string
-final = PromptTemplate(partial).to_string(name="Alice")
+partial = base.substitute(greeting="Hello")  # Returns a new PromptTemplate
+final = partial.to_string(name="Alice")
 ```
 
 ### Nested Templates
